@@ -1,0 +1,47 @@
+(define (domain sudoku)
+	(:requirements :hierarchy :typing :strips :universal-preconditions)
+	(:types row col - position digit box)
+	(:predicates
+		(cell-at-box ?b - box ?c - col ?r - row)
+		(digit-at ?d - digit ?c - col ?r - row)
+		(digit-at-box ?d - digit ?b - box)
+		(filled ?c - col ?r - row)
+		(inc ?a ?b - position))	
+	(:constants
+		d1 d2 d3 d4 d5 d6 d7 d8 d9 - digit		
+		b0 b1 b2 b3 b4 b5 b6 b7 b8 - box
+		c0 c1 c2 c3 c4 c5 c6 c7 c8 - col
+		r0 r1 r2 r3 r4 r5 r6 r7 r8 - row)
+	(:task all-check :parameters())
+	(:task fill-cell :parameters (?b - box ?c - col ?r - row ?d - digit))
+	(:task check-box :parameters (?b - box ?d - digit))
+	(:task check-row :parameters (?r - row ?d - digit))
+	(:task check-column :parameters (?c - col ?d - digit))
+	(:method m-all-check
+		:parameters ()
+		:task (all-check)
+		:precondition (and (forall (?r - row ?c - col) (filled ?c ?r))))
+	(:method m-fill-cell
+		:parameters (?b - box ?c - col ?r - row ?d - digit)
+		:task (fill-cell ?b ?c ?r ?d)
+		:precondition (and (not (filled ?c ?r)))
+		:ordered-subtasks (and (check-box ?b ?d) (check-row ?r ?d) (check-column ?c ?d) (FILL-CELL ?b ?c ?r ?d)))
+	(:method m-check-row
+		:parameters (?c0 ?c1 ?c2 ?c3 ?c4 ?c5 ?c6 ?c7 ?c8 - col ?r - row ?d - digit)
+		:task (check-row ?r ?d)
+		:precondition (and (inc ?c0 ?c1) (inc ?c1 ?c2) (inc ?c2 ?c3) (inc ?c3 ?c4) (inc ?c4 ?c5) (inc ?c5 ?c6) (inc ?c6 ?c7) (inc ?c7 ?c8) 
+			(forall (?c - col) (not (digit-at ?d ?c ?r)))))
+	(:method m-check-column
+		:parameters (?c - col ?r0 ?r1 ?r2 ?r3 ?r4 ?r5 ?r6 ?r7 ?r8 - row ?d - digit)
+		:task (check-column ?c ?d)
+		:precondition (and (inc ?r0 ?r1) (inc ?r1 ?r2) (inc ?r2 ?r3) (inc ?r3 ?r4) (inc ?r4 ?r5) (inc ?r5 ?r6) (inc ?r6 ?r7) (inc ?r7 ?r8)
+			(forall (?r - row) (not (digit-at ?d ?c ?r)))))
+	(:method m-check-box
+		:parameters (?b - box ?d - digit)
+		:task (check-box ?b ?d)
+		:precondition (and (not (digit-at-box ?d ?b))))
+	(:action FILL-CELL
+		:parameters (?b - box ?c - col ?r - row ?d - digit)
+		:precondition (and (cell-at-box ?b ?c ?r))
+		:effect (and (digit-at ?d ?c ?r) (digit-at-box ?d ?b) (filled ?c ?r)))
+)
